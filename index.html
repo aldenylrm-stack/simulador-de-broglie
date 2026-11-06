@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulador da Hipótese de de Broglie</title>
+  <style>
+    :root {
+      --bg: #f4f8fc;
+      --card: #ffffff;
+      --accent: #1e5fa8;
+      --accent2: #3f8bd8;
+      --text: #16324f;
+      --muted: #5d738d;
+      --border: #d7e4f2;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: Arial, Helvetica, sans-serif; background: linear-gradient(180deg,#eef5fb,#f8fbff);
+      color: var(--text); line-height: 1.45;
+    }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 24px; }
+    .hero {
+      background: linear-gradient(135deg,#e8f2fc,#ffffff 70%);
+      border: 1px solid var(--border);
+      border-radius: 18px; padding: 24px; margin-bottom: 18px;
+      box-shadow: 0 6px 18px rgba(38,93,154,0.08);
+    }
+    h1,h2,h3 { margin: 0 0 10px; }
+    h1 { color: var(--accent); font-size: 2rem; }
+    .sub { color: var(--muted); margin-bottom: 6px; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+    .card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px;
+      box-shadow: 0 6px 16px rgba(20,60,110,0.05);
+    }
+    label { display: block; font-weight: 700; margin-bottom: 8px; }
+    input[type="range"] { width: 100%; }
+    .pill {
+      display: inline-block; padding: 6px 10px; border-radius: 999px; background: #edf5ff; color: var(--accent);
+      border: 1px solid #cde0f7; font-size: 0.92rem; margin-right: 8px; margin-bottom: 8px;
+    }
+    .results { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+    .result {
+      background: #f8fbff; border: 1px solid var(--border); border-radius: 12px; padding: 12px;
+    }
+    .result .value { font-size: 1.2rem; font-weight: 700; color: var(--accent); }
+    .note { font-size: 0.95rem; color: var(--muted); margin-top: 10px; }
+    canvas { width: 100%; height: 140px; background: linear-gradient(180deg,#fbfdff,#f2f7fc); border: 1px solid var(--border); border-radius: 12px; }
+    .compare-box {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px;
+    }
+    .small { font-size: 0.92rem; color: var(--muted); }
+    .highlight { color: var(--accent); font-weight: 700; }
+    .profile {
+      display: grid; grid-template-columns: 180px 1fr; gap: 18px; align-items: start;
+    }
+    .profile img {
+      width: 100%; border-radius: 14px; border: 1px solid var(--border); background: #fff;
+      object-fit: cover;
+    }
+    ul { margin-top: 6px; }
+    .footer { margin-top: 18px; color: var(--muted); font-size: 0.88rem; }
+    @media (max-width: 860px) {
+      .grid, .profile, .compare-box, .results { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>Simulador da Hipótese de de Broglie</h1>
+      <p class="sub">Aula 3 — Partículas também podem apresentar comportamento ondulatório?</p>
+      <div>
+        <span class="pill">UEPS — Produto Educacional</span>
+        <span class="pill">Momento linear e comprimento de onda</span>
+        <span class="pill">Louis de Broglie</span>
+      </div>
+      <p>Explore a relação <strong>λ = h/p</strong>, em que <strong>λ</strong> é o comprimento de onda associado à partícula, <strong>h</strong> é a constante de Planck e <strong>p</strong> é o módulo do momento linear.</p>
+    </section>
+
+    <div class="grid">
+      <section class="card">
+        <h2>1. Explore a relação de de Broglie</h2>
+        <p>Mova o controle para variar o <strong>momento linear do elétron</strong> e observe o que acontece com o <strong>comprimento de onda associado</strong>.</p>
+
+        <label for="sliderP">Momento linear do elétron (escala logarítmica)</label>
+        <input id="sliderP" type="range" min="-30" max="-22" step="1" value="-24">
+        <div class="small">Valor ajustado: <span id="pSci" class="highlight"></span> kg·m/s</div>
+
+        <div class="results">
+          <div class="result">
+            <div>Momento linear (p)</div>
+            <div id="pDisplay" class="value"></div>
+          </div>
+          <div class="result">
+            <div>Comprimento de onda (λ)</div>
+            <div id="lambdaDisplay" class="value"></div>
+          </div>
+        </div>
+
+        <div class="note" id="interpretation"></div>
+
+        <h3 style="margin-top:18px;">Representação esquemática da onda associada</h3>
+        <canvas id="waveCanvas" width="700" height="140"></canvas>
+        <div class="small">A representação acima é didática: ela ilustra apenas a variação do comprimento de onda associado, não a descrição completa do elétron.</div>
+
+        <div class="compare-box">
+          <div class="result">
+            <div><strong>Comparação com uma bola de gude</strong></div>
+            <div class="small">Massa = 0,05 kg | Velocidade = 2 m/s</div>
+            <div class="small">Momento linear: <span id="marbleP"></span> kg·m/s</div>
+            <div class="small">Comprimento de onda: <span id="marbleL"></span> m</div>
+          </div>
+          <div class="result">
+            <div><strong>Interpretação</strong></div>
+            <div class="small" id="comparisonText"></div>
+          </div>
+        </div>
+      </section>
+
+
+    </div>
+
+    <section class="card" style="margin-top:20px;">
+      <h2>2. Quem foi Louis de Broglie?</h2>
+      <div class="profile">
+        <img loading="lazy" alt="Fotografia histórica de Louis de Broglie, 1929" src="https://upload.wikimedia.org/wikipedia/commons/e/ed/Louis_de_Broglie.jpg">
+        <div>
+          <p><strong>Louis de Broglie</strong> (1892–1987) foi um físico francês que propôs, em 1924, uma ideia revolucionária: se a luz, que era tradicionalmente tratada como onda, também podia apresentar comportamento corpuscular, então partículas materiais, como os elétrons, poderiam apresentar propriedades ondulatórias.</p>
+          <p>Essa proposta foi expressa na relação <strong>λ = h/p</strong>, que associa a cada partícula um comprimento de onda inversamente proporcional ao seu momento linear. A hipótese de de Broglie abriu caminho para o desenvolvimento da Mecânica Quântica e ajudou a explicar fenômenos como a difração e a interferência de elétrons.</p>
+          <ul>
+            <li>Propôs a hipótese das ondas de matéria.</li>
+            <li>Recebeu o Prêmio Nobel de Física em 1929.</li>
+            <li>Sua ideia foi confirmada experimentalmente por fenômenos de difração de elétrons.</li>
+          </ul>
+        </div>
+      </div>
+      <p class="small">Foto histórica de Louis de Broglie (1929). Fonte: Wikimedia Commons / Fundação Nobel. A fotografia requer acesso à internet.</p>
+    </section>
+
+    <div class="footer">Arquivo produzido para uso didático na Aula 3 da UEPS. Constante de Planck utilizada: h = 6,63 × 10<sup>-34</sup> J·s.</div>
+  </div>
+
+  <script>
+    const h = 6.63e-34;
+    const slider = document.getElementById('sliderP');
+    const pDisplay = document.getElementById('pDisplay');
+    const lambdaDisplay = document.getElementById('lambdaDisplay');
+    const interpretation = document.getElementById('interpretation');
+    const pSci = document.getElementById('pSci');
+    const canvas = document.getElementById('waveCanvas');
+    const ctx = canvas.getContext('2d');
+    const marbleP = 0.05 * 2;
+    const marbleLambda = h / marbleP;
+    document.getElementById('marbleP').textContent = sci(marbleP);
+    document.getElementById('marbleL').textContent = sci(marbleLambda);
+
+    function sci(num) {
+      const exp = num.toExponential(2).replace('e', ' × 10^');
+      return exp;
+    }
+
+    function formatHTMLSci(num) {
+      const s = num.toExponential(2);
+      const parts = s.split('e');
+      const base = parts[0];
+      const exp = Number(parts[1]);
+      return `${base} × 10<sup>${exp}</sup>`;
+    }
+
+    function drawWave(lambda) {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle = '#f9fcff';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.strokeStyle = '#d7e4f2';
+      ctx.lineWidth = 1;
+      for(let x=0;x<canvas.width;x+=40){
+        ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke();
+      }
+      ctx.beginPath();
+      ctx.strokeStyle = '#2d73c7';
+      ctx.lineWidth = 3;
+      // map lambda range 1e-12 to 1e-4 roughly into visible wavelength 35 to 180 px using log scale
+      const logL = Math.log10(lambda);
+      const minLog = -12, maxLog = -4;
+      let pxLambda = 35 + ((logL - minLog)/(maxLog - minLog))*145;
+      pxLambda = Math.max(25, Math.min(190, pxLambda));
+      const A = 28;
+      const y0 = 70;
+      for(let x=0;x<=canvas.width;x++){
+        const y = y0 + A*Math.sin(2*Math.PI*x/pxLambda);
+        if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+      ctx.fillStyle = '#1e5fa8';
+      ctx.font = '14px Arial';
+      ctx.fillText('Representação didática do comprimento de onda associado', 16, 22);
+      ctx.fillText('λ visual aumenta quando p diminui', 16, 128);
+    }
+
+    function update() {
+      const exponent = Number(slider.value);
+      const p = 10**exponent;
+      const lambda = h / p;
+      pDisplay.innerHTML = formatHTMLSci(p) + ' kg·m/s';
+      lambdaDisplay.innerHTML = formatHTMLSci(lambda) + ' m';
+      pSci.innerHTML = formatHTMLSci(p);
+      if (p > 1e-24) {
+        interpretation.innerHTML = 'Observe que, ao <strong>aumentar o momento linear</strong>, o <strong>comprimento de onda associado diminui</strong>. Portanto, a relação entre λ e p é <strong>inversa</strong>.';
+      } else {
+        interpretation.innerHTML = 'Quando o <strong>momento linear é menor</strong>, o <strong>comprimento de onda associado é maior</strong>, o que favorece a discussão de propriedades ondulatórias.';
+      }
+      drawWave(lambda);
+      document.getElementById('comparisonText').innerHTML = `Para a bola de gude, o comprimento de onda associado é extremamente pequeno (${formatHTMLSci(marbleLambda)} m). Já para valores de momento linear típicos de partículas microscópicas, como os elétrons, o comprimento de onda associado pode atingir escalas muito maiores, tornando efeitos ondulatórios mais investigáveis.`;
+    }
+
+    slider.addEventListener('input', update);
+    update();
+  </script>
+</body>
+</html>
